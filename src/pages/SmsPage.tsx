@@ -1293,13 +1293,13 @@ export const SmsPage: React.FC = () => {
                             : 'bg-[#CAE4C5] text-[#254222]'
                         }`}
                       >
-                        {directCalc.encoding}
+                        {directCalc.containsUnicode ? t.sms.formatUnicodeLabel : t.sms.formatStandardLabel}
                       </span>
                       <span className="text-[#4A6644] font-semibold">
                         {directCalc.characterCount} {t.sms.charsWord}
                       </span>
                       <span className="font-bold text-[#254222]">
-                        {directCalc.segmentCount} SMS
+                        {directCalc.segmentCount} {t.sms.messagesWord}
                       </span>
                       <span className="text-[#5E7F52] text-[11px]">
                         ({directCalc.remainingInCurrentSegment}/{directCalc.maxPerSegment})
@@ -1920,9 +1920,16 @@ export const SmsPage: React.FC = () => {
                   </p>
 
                   <div className="flex items-center gap-3 text-xs text-[#4A6644] flex-wrap">
-                    <span>{t.sms.formatPrefix} <strong className="text-[#254222]">{log.encoding}</strong></span>
+                    <span>
+                      {t.sms.formatPrefix}{' '}
+                      <strong className="text-[#254222]">
+                        {log.encoding?.toUpperCase().includes('GSM')
+                          ? t.sms.formatStandardLabel
+                          : t.sms.formatUnicodeLabel}
+                      </strong>
+                    </span>
                     <span>&bull;</span>
-                    <span>{t.sms.segmentsPrefix} <strong className="text-[#5E7F52]">{log.segment_count} SMS</strong></span>
+                    <span>{t.sms.segmentsPrefix} <strong className="text-[#5E7F52]">{log.segment_count} {t.sms.messagesWord}</strong></span>
                     {log.category && (
                       <>
                         <span>&bull;</span>
@@ -2065,12 +2072,12 @@ export const SmsPage: React.FC = () => {
                 <label className="text-xs font-bold text-[#4A6644]">{t.sms.smsTextLabel}</label>
                 <div className="flex items-center gap-2 text-xs">
                   <span className={`font-bold ${templateCalc.containsUnicode ? 'text-amber-600' : 'text-[#5E7F52]'}`}>
-                    {templateCalc.encoding}
+                    {templateCalc.containsUnicode ? t.sms.formatUnicodeLabel : t.sms.formatStandardLabel}
                   </span>
                   <span>&bull;</span>
                   <span>{templateCalc.characterCount} {t.sms.charsWord}</span>
                   <span>&bull;</span>
-                  <span className="font-bold text-[#254222]">{templateCalc.segmentCount} SMS</span>
+                  <span className="font-bold text-[#254222]">{templateCalc.segmentCount} {t.sms.messagesWord}</span>
                 </div>
               </div>
 
@@ -2695,50 +2702,69 @@ export const SmsPage: React.FC = () => {
         </form>
       </Modal>
 
-      {/* Payload Inspection Modal */}
+      {/* Delivery Details Modal */}
       <Modal
         isOpen={!!selectedLogPayload}
         onClose={() => setSelectedLogPayload(null)}
         title={t.sms.payloadModalTitle}
       >
-        {selectedLogPayload && (
-          <div className="space-y-3 text-xs">
-            <div className="p-3 bg-[#F7FAF4] rounded-xl border border-[#CAE4C5] space-y-2">
-              <div className="flex items-center justify-between pb-2 border-b border-[#CAE4C5]/70">
-                <span className="font-bold text-[#4A6644]">{t.sms.payloadRoutingStatus}</span>
-                {renderLogStatusBadge(selectedLogPayload.status)}
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pt-1">
-                <div>
-                  <strong className="text-[#4A6644]">{t.sms.payloadRecordId}</strong>{' '}
-                  <span dir="ltr" className="font-mono text-[#254222]">{selectedLogPayload.id}</span>
-                </div>
-                <div>
-                  <strong className="text-[#4A6644]">{t.sms.payloadSentAt}</strong>{' '}
-                  <span className="text-[#254222]">{new Date(selectedLogPayload.created_at).toLocaleString(locale)}</span>
-                </div>
-              </div>
-              <div>
-                <strong className="text-[#4A6644]">{t.sms.payloadRecipient}</strong>{' '}
-                <span className="text-[#254222]">{selectedLogPayload.recipient_name}</span> (
-                <span dir="ltr" className="font-mono text-[#254222]">{selectedLogPayload.recipient_phone}</span>)
-              </div>
-              <div>
-                <strong className="text-[#4A6644]">{t.sms.payloadEncodingVolume}</strong>{' '}
-                <span className="text-[#254222]">
-                  {selectedLogPayload.encoding} &bull; {selectedLogPayload.segment_count} SMS
-                </span>
-              </div>
-            </div>
+        {selectedLogPayload && (() => {
+          const parsedDetails = safeParseJson(selectedLogPayload.provider_response) as Record<string, any>;
+          const detailNote =
+            parsedDetails?.errorMessage ||
+            parsedDetails?.note ||
+            (selectedLogPayload.status === 'FAILED'
+              ? t.sms.badgeFailedTitle
+              : selectedLogPayload.status === 'DELIVERED' || selectedLogPayload.status === 'Delivered'
+              ? t.sms.badgeDeliveredTitle
+              : t.sms.badgeSentTitle);
+          const channelDisplay =
+            selectedLogPayload.provider_name === 'iPhone_Messages_Bridge'
+              ? t.sms.sendViaIphoneBtn
+              : selectedLogPayload.is_simulated
+              ? t.sms.testModeWord
+              : config.simPlanLabel || t.sms.simPlanBadgeDefault;
 
-            <div>
-              <span className="font-bold text-[#4A6644] block mb-1">{t.sms.payloadRawResponse}</span>
-              <pre dir="ltr" className="p-3 bg-[#162914] text-[#CAE4C5] rounded-xl overflow-x-auto text-[11px] font-mono text-left">
-                {JSON.stringify(safeParseJson(selectedLogPayload.provider_response), null, 2)}
-              </pre>
+          return (
+            <div className="space-y-3 text-xs">
+              <div className="p-3.5 bg-[#F7FAF4] rounded-xl border border-[#CAE4C5] space-y-2">
+                <div className="flex items-center justify-between pb-2 border-b border-[#CAE4C5]/70">
+                  <span className="font-bold text-[#4A6644]">{t.sms.payloadRoutingStatus}</span>
+                  {renderLogStatusBadge(selectedLogPayload.status)}
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pt-1">
+                  <div>
+                    <strong className="text-[#4A6644]">{t.sms.payloadChannelLabel}</strong>{' '}
+                    <span className="text-[#254222] font-semibold">{channelDisplay}</span>
+                  </div>
+                  <div>
+                    <strong className="text-[#4A6644]">{t.sms.payloadSentAt}</strong>{' '}
+                    <span className="text-[#254222]">{new Date(selectedLogPayload.created_at).toLocaleString(locale)}</span>
+                  </div>
+                </div>
+                <div>
+                  <strong className="text-[#4A6644]">{t.sms.payloadRecipient}</strong>{' '}
+                  <span className="text-[#254222]">{selectedLogPayload.recipient_name}</span> (
+                  <span dir="ltr" className="font-mono text-[#254222]">{selectedLogPayload.recipient_phone}</span>)
+                </div>
+                <div>
+                  <strong className="text-[#4A6644]">{t.sms.payloadEncodingVolume}</strong>{' '}
+                  <span className="text-[#254222]">
+                    {selectedLogPayload.encoding?.toUpperCase().includes('GSM')
+                      ? t.sms.formatStandardLabel
+                      : t.sms.formatUnicodeLabel}{' '}
+                    &bull; {selectedLogPayload.segment_count} {t.sms.messagesWord}
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-3.5 bg-white rounded-xl border border-[#CAE4C5] space-y-1.5">
+                <span className="font-bold text-[#4A6644] block">{t.sms.payloadRawResponse}</span>
+                <p className="text-[#254222] leading-relaxed">{String(detailNote)}</p>
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </Modal>
     </div>
   );

@@ -1005,10 +1005,15 @@ export interface TranslationDictionary {
     simLiveSuccessPrefix: string;
     simGatewayReadyBadge: string;
     simGatewayUnconfiguredBadge: string;
+    formatStandardLabel: string;
+    formatUnicodeLabel: string;
+    messagesWord: string;
+    payloadChannelLabel: string;
   };
   settings: {
     title: string;
     subtitle: string;
+    systemActiveBadge: string;
     pgConnectedBadge: string;
     sandboxBadge: string;
     tabGeneral: string;
@@ -1047,6 +1052,8 @@ export interface TranslationDictionary {
     dbTitle: string;
     dbDesc: string;
     storageEngineLabel: string;
+    dbEngineReadyValue: string;
+    dbSyncActiveSub: string;
     latencyPrefix: string;
     prodDbRequiredHint: string;
     isolationCurrencyLabel: string;
@@ -1055,6 +1062,14 @@ export interface TranslationDictionary {
     dataVolumeLabel: string;
     recordsWord: string;
     dataVolumeSub: string;
+    tableOwnersTitle: string;
+    tableAnimalsTitle: string;
+    tableVaccinesTitle: string;
+    tableAppointmentsTitle: string;
+    tableInvoicesTitle: string;
+    tableStocksTitle: string;
+    tableRemindersTitle: string;
+    tableLogsTitle: string;
     tableOwnersDesc: string;
     tableAnimalsDesc: string;
     tableVaccinesDesc: string;
@@ -1068,6 +1083,13 @@ export interface TranslationDictionary {
     browserDetectedLabel: string;
     noLegacyData: string;
     foundKeysPrefix: string;
+    archiveFoundCountPrefix: string;
+    archiveFoundCountSuffix: string;
+    importSummaryOwners: string;
+    importSummaryPatients: string;
+    importSummaryAppointments: string;
+    importSummaryStocks: string;
+    importSummaryInvoices: string;
     downloadJsonBackupBtn: string;
     dryRunBtn: string;
     migrateBtn: string;
@@ -1087,9 +1109,13 @@ export interface TranslationDictionary {
     vaccineIntervalsLabel: string;
     vercelCronTitle: string;
     vercelCronDesc: string;
+    schedulerConnectionBadge: string;
     triggerCronBtn: string;
     triggeringCronBtn: string;
     cronReportTitle: string;
+    cronProcessedLabel: string;
+    cronSentLabel: string;
+    cronDeferredLabel: string;
     gsmSimTitle: string;
     encodingLabel: string;
     segmentsLabel: string;

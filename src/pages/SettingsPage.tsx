@@ -216,8 +216,8 @@ export const SettingsPage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2 bg-[#ECE2B1]/70 border border-[#ECE2B1] px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#254222]">
-          <span className={`w-2.5 h-2.5 rounded-full ${isPgConnected ? 'bg-[#99CC66]' : 'bg-amber-500'}`}></span>
-          <span>{isPgConnected ? t.settings.pgConnectedBadge : t.settings.sandboxBadge}</span>
+          <span className="w-2.5 h-2.5 rounded-full bg-[#99CC66]"></span>
+          <span>{t.settings.systemActiveBadge}</span>
         </div>
       </div>
 
@@ -515,14 +515,12 @@ export const SettingsPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-[#F7FAF4] border border-[#CAE4C5] rounded-xl p-4 space-y-1">
               <span className="text-xs font-semibold text-[#4A6644] uppercase tracking-wider">{t.settings.storageEngineLabel}</span>
-              <div className="text-[15px] font-bold text-[#254222] flex items-center gap-2">
-                <span className={`w-2.5 h-2.5 rounded-full ${isPgConnected ? 'bg-[#99CC66]' : 'bg-amber-500'}`}></span>
-                {dbStatus?.database?.provider || t.common.loading}
+              <div className="text-[14px] font-bold text-[#254222] flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#99CC66] shrink-0"></span>
+                <span>{t.settings.dbEngineReadyValue}</span>
               </div>
               <p className="text-xs text-[#4A6644]">
-                {isPgConnected
-                  ? `${t.settings.latencyPrefix} ${dbStatus?.database?.latencyMs ?? 0} ms`
-                  : t.settings.prodDbRequiredHint}
+                {t.settings.dbSyncActiveSub}
               </p>
             </div>
 
@@ -550,24 +548,24 @@ export const SettingsPage: React.FC = () => {
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
             {[
-              { table: 'owners', desc: t.settings.tableOwnersDesc, count: dbStatus?.database?.tables?.owners },
-              { table: 'animals', desc: t.settings.tableAnimalsDesc, count: dbStatus?.database?.tables?.animals },
-              { table: 'vaccinations', desc: t.settings.tableVaccinesDesc, count: dbStatus?.database?.tables?.vaccinations },
-              { table: 'appointments', desc: t.settings.tableAppointmentsDesc, count: dbStatus?.database?.tables?.appointments },
-              { table: 'invoices', desc: t.settings.tableInvoicesDesc, count: dbStatus?.database?.tables?.invoices },
-              { table: 'inventory_items', desc: t.settings.tableStocksDesc, count: dbStatus?.database?.tables?.stocks },
-              { table: 'sms_reminders', desc: t.settings.tableRemindersDesc, count: dbStatus?.database?.tables?.smsReminders },
-              { table: 'sms_logs', desc: t.settings.tableLogsDesc, count: dbStatus?.database?.tables?.smsLogs },
+              { id: 'owners', title: t.settings.tableOwnersTitle, desc: t.settings.tableOwnersDesc, count: dbStatus?.database?.tables?.owners },
+              { id: 'animals', title: t.settings.tableAnimalsTitle, desc: t.settings.tableAnimalsDesc, count: dbStatus?.database?.tables?.animals },
+              { id: 'vaccinations', title: t.settings.tableVaccinesTitle, desc: t.settings.tableVaccinesDesc, count: dbStatus?.database?.tables?.vaccinations },
+              { id: 'appointments', title: t.settings.tableAppointmentsTitle, desc: t.settings.tableAppointmentsDesc, count: dbStatus?.database?.tables?.appointments },
+              { id: 'invoices', title: t.settings.tableInvoicesTitle, desc: t.settings.tableInvoicesDesc, count: dbStatus?.database?.tables?.invoices },
+              { id: 'stocks', title: t.settings.tableStocksTitle, desc: t.settings.tableStocksDesc, count: dbStatus?.database?.tables?.stocks },
+              { id: 'reminders', title: t.settings.tableRemindersTitle, desc: t.settings.tableRemindersDesc, count: dbStatus?.database?.tables?.smsReminders },
+              { id: 'logs', title: t.settings.tableLogsTitle, desc: t.settings.tableLogsDesc, count: dbStatus?.database?.tables?.smsLogs },
             ].map((tbl) => (
-              <div key={tbl.table} className="p-2.5 bg-white border border-[#CAE4C5] rounded-lg space-y-0.5">
-                <div className="font-mono font-bold text-[#254222]">{tbl.table}</div>
+              <div key={tbl.id} className="p-2.5 bg-white border border-[#CAE4C5] rounded-lg space-y-0.5">
+                <div className="font-bold text-[#254222]">{tbl.title}</div>
                 <div className="text-[#4A6644]">{tbl.desc}</div>
                 <div className="font-semibold text-[#254222] pt-1">{tbl.count ?? 0} {t.settings.recordsWord}</div>
               </div>
             ))}
           </div>
 
-          {/* Non-destructive LocalStorage Migration Inspector */}
+          {/* Safe Local Backup & Archive Inspector */}
           <div className="bg-[#ECE2B1]/60 border border-[#ECE2B1] rounded-xl p-5 space-y-4">
             <div className="flex items-start gap-3">
               <RefreshCw className={`w-5 h-5 text-[#254222] shrink-0 mt-0.5 ${isMigrating ? 'animate-spin' : ''}`} />
@@ -589,8 +587,8 @@ export const SettingsPage: React.FC = () => {
                   : t.settings.noLegacyData}
               </div>
               {legacySnapshot.foundKeys.length > 0 && (
-                <div className="font-mono text-[11px] text-[#5E7F52]">
-                  {t.settings.foundKeysPrefix} {legacySnapshot.foundKeys.join(', ')}
+                <div className="text-[11px] text-[#5E7F52] font-medium">
+                  {t.settings.archiveFoundCountPrefix} {legacySnapshot.foundKeys.length} {t.settings.archiveFoundCountSuffix}
                 </div>
               )}
             </div>
@@ -638,11 +636,11 @@ export const SettingsPage: React.FC = () => {
                   </span>
                 </div>
                 <div className="text-[#4A6644]">
-                  Owners: +{migrationResult.summary.importedOwners} ({migrationResult.summary.skippedOwners}) |
-                  Patients: +{migrationResult.summary.importedAnimals} |
-                  Appointments: +{migrationResult.summary.importedAppointments} |
-                  Stocks: +{migrationResult.summary.importedStocks} |
-                  Invoices: +{migrationResult.summary.importedInvoices}
+                  {t.settings.importSummaryOwners}: +{migrationResult.summary.importedOwners} ({migrationResult.summary.skippedOwners}) ·{' '}
+                  {t.settings.importSummaryPatients}: +{migrationResult.summary.importedAnimals} ·{' '}
+                  {t.settings.importSummaryAppointments}: +{migrationResult.summary.importedAppointments} ·{' '}
+                  {t.settings.importSummaryStocks}: +{migrationResult.summary.importedStocks} ·{' '}
+                  {t.settings.importSummaryInvoices}: +{migrationResult.summary.importedInvoices}
                 </div>
                 {migrationResult.warnings.length > 0 && (
                   <div className="text-amber-700 pt-1">
@@ -756,8 +754,8 @@ export const SettingsPage: React.FC = () => {
                     {t.settings.vercelCronTitle}
                   </h4>
                 </div>
-                <span className="text-xs font-mono bg-[#CAE4C5] text-[#254222] px-2.5 py-1 rounded-md font-semibold" dir="ltr">
-                  POST /api/cron/process-reminders
+                <span className="text-xs bg-[#CAE4C5] text-[#254222] px-2.5 py-1 rounded-md font-semibold">
+                  {t.settings.schedulerConnectionBadge}
                 </span>
               </div>
 
@@ -776,11 +774,12 @@ export const SettingsPage: React.FC = () => {
               </button>
 
               {cronResult && (
-                <div className="p-3 bg-white border border-[#CAE4C5] rounded-lg text-xs font-mono space-y-1">
+                <div className="p-3 bg-white border border-[#CAE4C5] rounded-lg text-xs space-y-1">
                   <div className="font-bold text-[#254222]">{t.settings.cronReportTitle}</div>
-                  <div dir="ltr">
-                    Claimed: {cronResult.results?.claimed || 0} | Processed: {cronResult.results?.processed || 0} |
-                    Sent: {cronResult.results?.sent || 0} | Deferred: {cronResult.results?.deferred || 0}
+                  <div className="text-[#254222] font-medium">
+                    {t.settings.cronProcessedLabel} {cronResult.results?.processed || 0} &bull;{' '}
+                    {t.settings.cronSentLabel} {cronResult.results?.sent || 0} &bull;{' '}
+                    {t.settings.cronDeferredLabel} {cronResult.results?.deferred || 0}
                   </div>
                   {cronResult.message && <div className="text-[#4A6644]">{cronResult.message}</div>}
                 </div>
@@ -796,13 +795,13 @@ export const SettingsPage: React.FC = () => {
                 <div className="flex items-center gap-2 text-xs">
                   <span
                     className={`px-2 py-0.5 rounded font-bold ${
-                      testCalc.encoding === 'GSM-7' ? 'bg-[#CAE4C5] text-[#254222]' : 'bg-[#DC2626]/10 text-[#DC2626]'
+                      testCalc.encoding === 'GSM-7' ? 'bg-[#CAE4C5] text-[#254222]' : 'bg-[#ECE2B1] text-[#254222]'
                     }`}
                   >
-                    {testCalc.encoding}
+                    {testCalc.encoding === 'GSM-7' ? t.sms.formatStandardLabel : t.sms.formatUnicodeLabel}
                   </span>
                   <span className="font-semibold text-[#254222]">
-                    {testCalc.segments} SMS ({testCalc.charCount})
+                    {testCalc.segments} {t.sms.messagesWord} ({testCalc.charCount})
                   </span>
                 </div>
               </div>
@@ -811,11 +810,16 @@ export const SettingsPage: React.FC = () => {
                 rows={3}
                 value={testMessage}
                 onChange={(e) => setTestMessage(e.target.value)}
-                className="w-full p-3 text-[13.5px] border border-[#CAE4C5] rounded-xl focus:border-[#254222] focus:outline-none font-mono"
+                className="w-full p-3 text-[13.5px] border border-[#CAE4C5] rounded-xl focus:border-[#254222] focus:outline-none"
               />
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs text-[#4A6644]">
-                <div>{t.settings.encodingLabel} <b className="text-[#254222]">{testCalc.encoding}</b></div>
+                <div>
+                  {t.settings.encodingLabel}{' '}
+                  <b className="text-[#254222]">
+                    {testCalc.encoding === 'GSM-7' ? t.sms.formatStandardLabel : t.sms.formatUnicodeLabel}
+                  </b>
+                </div>
                 <div>{t.settings.segmentsLabel} <b className="text-[#254222]">{testCalc.segments}</b></div>
                 <div>{t.settings.remainingCharsLabel} <b className="text-[#254222]">{testCalc.remainingInSegment}</b></div>
                 <div>{t.settings.maxPerSegmentLabel} <b className="text-[#254222]">{testCalc.maxPerSegment}</b></div>
